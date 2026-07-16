@@ -25,6 +25,8 @@ income_tx <- get_acs(
 )
 ```
 
+
+
 ```{r}
 ggplot(income_tx) +
   geom_sf(aes(fill = estimate), color = NA) +
@@ -32,5 +34,47 @@ ggplot(income_tx) +
   labs(
     title = "Texas County Median Household Income (2020)",
     fill = "Median income"
+  )
+```
+```{r}
+#| message: false
+#| cache: true
+edu_state <- get_acs(
+  geography = "state",
+  variables = c("B15003_001", "B15003_022", "B15003_023", "B15003_024", "B15003_025"),
+  summary_var = "B15003_001",
+  year = 2020,
+  survey = "acs5"
+)
+```
+
+```{r}
+edu_state_ba_share <- edu_state |>
+  group_by(GEOID, NAME) |>
+  summarise(
+    total_adults = first(summary_est),
+    ba_or_higher = sum(estimate[variable %in% c("B15003_022", "B15003_023", "B15003_024", "B15003_025")], na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    pct_ba_or_higher = 100 * ba_or_higher / total_adults,
+    NAME = fct_reorder(NAME, pct_ba_or_higher, .desc = TRUE)
+  )
+
+edu_state_ba_share |>
+  ggplot(aes(x = NAME, y = pct_ba_or_higher)) +
+  geom_col(fill = "#2F6C8F") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+  labs(
+    title = "Share of Adults With a Bachelor's Degree or Higher by State",
+    x = "State-level geography",
+    y = "Bachelor's-or-higher attainment",
+    caption = "Source: U.S. Census Bureau, ACS 2016-2020 5-year estimates (table B15003) via tidycensus"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 8)
   )
 ```
