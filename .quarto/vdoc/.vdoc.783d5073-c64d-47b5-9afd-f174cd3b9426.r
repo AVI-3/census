@@ -1,19 +1,19 @@
----
-title: "Analyzing US Census Data"
-author: "Avinesh Saravana"
-format: html
-execute:
-  echo: false
----
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| message: false
 library(tidyverse)
 library(tidycensus)
 library(sf)
-```
-
-```{r}
+#
+#
+#
 #| message: false
 income_tx <- get_acs(
   geography = "county",
@@ -23,9 +23,9 @@ income_tx <- get_acs(
   survey = "acs5",
   geometry = TRUE
 )
-```
-
-```{r}
+#
+#
+#
 ggplot(income_tx) +
   geom_sf(aes(fill = estimate), color = NA) +
   scale_fill_viridis_c(labels = scales::label_dollar()) +
@@ -34,7 +34,7 @@ ggplot(income_tx) +
     fill = "Median income"
   )
 ```
-```{r}
+#
 #| message: false
 #| cache: true
 edu_state <- get_acs(
@@ -44,9 +44,9 @@ edu_state <- get_acs(
   year = 2020,
   survey = "acs5"
 )
-```
-
-```{r}
+#
+#
+#
 edu_state_ba_share <- edu_state |>
   group_by(GEOID, NAME) |>
   summarise(
@@ -75,9 +75,9 @@ edu_state_ba_share |>
     panel.grid.minor = element_blank(),
     axis.text.y = element_text(size = 8)
   )
-```
-
-```{r}
+#
+#
+#
 #| message: false
 age_ca <- get_acs(
   geography = "county",
@@ -90,33 +90,14 @@ age_ca <- get_acs(
   survey = "acs5",
   geometry = FALSE
 )
-```
-
-```{r}
-age_ca_counties <- age_ca |>
+#
+#
+#
+age_ca |>
   select(GEOID, NAME, variable, estimate) |>
-  pivot_wider(names_from = variable, values_from = estimate)
-
-largest_counties <- age_ca_counties |>
-  slice_max(order_by = population, n = 8)
-
-age_ca_counties |>
-  ggplot(aes(x = median_age, y = population)) +
-  geom_point(alpha = 0.8, color = "#2F6C8F") +
-  geom_text(
-    data = largest_counties,
-    aes(label = str_remove(NAME, ", California")),
-    hjust = -0.1,
-    size = 3,
-    check_overlap = TRUE
-  ) +
-  scale_y_log10(labels = scales::label_comma()) +
-  labs(
-    title = "California Counties: Population vs. Median Age (2020)",
-    x = "Median age (years)",
-    y = "Population (log scale)",
-    caption = "Source: U.S. Census Bureau, ACS 2016-2020 5-year estimates (B01002, B01003) via tidycensus"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(panel.grid.minor = element_blank())
-```
+  pivot_wider(names_from = variable, values_from = estimate) |>
+  arrange(desc(population))
+#
+#
+#
+#
